@@ -7,11 +7,16 @@ using namespace std;
 
 int main()
 {
-    long second;
+    long lsecond;
     const short hours = 24, minutes = 60, seconds = 60;
     cout << "Enter the number of seconds:";
-    cin >> second;
-    cout << second << " seconds = " << second / (hours * minutes * seconds) << " days, "
-    << second % (hours * minutes * seconds) % (hours) << " hours, "
-    << second % (hours * minutes * seconds) << " seconds." << endl;
+    cin >> lsecond;
+    int day, hour, minute, second;
+    day = lsecond / (hours * minutes * seconds);
+    hour = lsecond % (hours * minutes * seconds) / (minutes * seconds);
+    minute = lsecond % (hours * minutes * seconds) % (minutes * seconds) / (seconds);
+    second = lsecond % (hours * minutes * seconds) % (minutes * seconds) % (seconds);
+    cout << lsecond << " seconds = " << day << " days, "
+    << hour << " hours, " << minute << " minutes, "
+    << second << " seconds." << endl;
 }
