@@ -53,4 +53,25 @@ sizeof(parr) //4
 sizeof(arr) //10
 //&arr为整个数组地址，arr为第一个元素地址。 
 ```
+# Chapter7 函数和二维数组
+
+## 7.1 const修饰符
+
+- 指向const 变量的指针：
+```C++
+    const double * fdb;
+    //指针执行的double类型为const double，不可以通过指针修改变量值，但可以修改指针指向的地址。
+```
+- 指针类型为const类型的指针：
+```C++
+    double * const fdb;
+    //指针类型为const，不可以修改指针指向的地址，但可以通过指针修改变量值
+```
+- 指向const变量的const指针：
+```C++
+    const double * const fdb;
+    //既不可以修改指针地址，又不可以修改变量值
+```
+> 可以将const或非const类型数据的地址赋值给指向const的指针，但只能将非const数据地址赋值给非const指针。
+> 在函数参数中尽可能的使用const修饰符，第一可以避免间接修改数据引发的错误；第二const修饰后可以接受const和非const实参，否则只能接受非const实参。
 
