@@ -75,3 +75,30 @@ sizeof(arr) //10
 > 可以将const或非const类型数据的地址赋值给指向const的指针，但只能将非const数据地址赋值给非const指针。
 > 在函数参数中尽可能的使用const修饰符，第一可以避免间接修改数据引发的错误；第二const修饰后可以接受const和非const实参，否则只能接受非const实参。
 
+## 7.2 函数模板
+> 模板函数很可能无法处理某些类型。对于给定的函数名可以有非模板函数、模板函数和具体化模板函数。
+> 具体化优先于常规模板，非模板函数优先于模板函数。
+
+**重载解析**
+1. 创建候选函数列表。其中包含与被调用函数的名称相同的函数和模板函数
+2. 使用候选函数创建可行函数列表。这些都是参数数目正确的函数，为此有一个隐式转换序列，其中包括实参类型与相应的形参类型完全匹配的情况。例如，使用float参数的函数调用可将该参数转换为double，从而与double形参匹配，而模板可以为float生成一个实例。
+3. 确定是否有最佳的可行函数。
+   1. 完全匹配，但常规函数优先于模板
+   2. 提升转换(char, short -> int; float->double)
+   3. 标准转换(int -> char, long -> double)
+   4. 用户定义的转换(如类声明中定义的转换)
+
+**完全匹配允许的无关紧要转换**
+
+| 从实参    | 到形参    |
+|--------|--------|
+| Type   | Type & |
+| Type&  | Type   |
+| Type[] | *Type |
+| Type(argument-list)|Type(*)(argument-list)|
+|Type|const Type|
+|Type|volatile Type|
+|Type*|const Type|
+|Type*|volatile Type*|
+
+
