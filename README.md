@@ -102,3 +102,62 @@ sizeof(arr) //10
 |Type*|volatile Type*|
 
 
+**C++11新增decltype:decltype(expression) var;**
+- 如果expression是一个没有用括号括起的标识符，则var的类型与函数的返回类型相同
+
+```C++
+double x = 5.5;
+double y = 7.9;
+double &rx = x;
+const double* pd;
+decltype(x) w;  //w is type double
+decltype(rx) u; //u is type double &
+decltype(pd) v; //v is type double *
+```
+
+- 如果expression是一个函数调用，则var类型与函数返回类型同
+
+```C++
+long indeed(int);
+decltype(indeed(3)) m;  // m is type long
+```
+
+- 如果expression是一个左值，则var为指向其类型的引用。要进入这一步，expression不能是未用括号括起来的标识符。
+  
+```C++
+double xx = 4.4;
+decltype((xx)) r2 = xx; //r2 is double &
+decltype(xx) w = xx;    //w is double(Stage 1 match)
+```
+- 如果前面的条件都不满足，则var的类型与expression类型相同
+```C++
+int j = 3;
+int &k = j;
+int &n = j;
+decltype(j+6) i1;   //i1 type int
+decltype(100L) i2;  //i2 long
+decltpe(k + n) i3;  //i3 type int
+//如果需要多次声明可以结合typedef和decltype
+
+template<class T1, class T2>
+void ft(T1 x, T2 y){
+    typedef decltype(x + y) xytype;
+    xytype xpy = x + y;
+    xytype arr[10];
+    xytype & rxy = arr[2];
+    //...
+}
+```
+
+**后置返回类型**
+```C++
+?type? gt(T1 x, T2 y)
+```
+以上类型是decltype本身无法解决的，可以使用新增的语法：
+```C++
+template<class T1, class T2>
+auto f(T1 x, T2 y) -> decltype(x + y)
+{
+    //...
+}
+```
