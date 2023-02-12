@@ -287,4 +287,14 @@ int main(){
 using namespace std;
 //using 声明：
 using std::cout;
+//可以为namespace起别名：
+namespace my_favourite_fruits;
+namespace mff = my_favourite_fruits;
 ```
+
+**指导原则**
+- 使用在已命名的空间中声明的变量，而不是使用外部全局变量或静态变量
+- 将开发的函数库或类库放在一个名称空间中
+- 不要再头文件中使用using编译指令，如非要使用，应放在所有#include之后
+- 首先使用using声明而不是using编译指令
+
