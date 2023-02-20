@@ -329,7 +329,7 @@ Stock s2 = {"eee", 20, 3.1};
 无法使用对象来调用构造函数，因为对象还没有构造出来。如果没有定义任何构造函数，编译器会提供默认构造函数，如果程序员定义了非默认构造函数，则编译器不会再提供默认构造函数。**在设计类时，通常应该提供对所有类成员作隐式初始化的默认构造函数。**
 
 
-## const成员函数
+### const成员函数
 
 为了保证函数不会修改调用对象，C++的规定将const关键字放在函数的括号后面：
 ```C++
@@ -338,3 +338,80 @@ const Stock land = {"aaa", 12, 2};
 land.show();
 ```
 ***只要类方法不修改调用对象，就应该将其声明为const。***
+
+### 作用域为类的常量
+```C++
+class Bakery
+{
+    private:
+    const int Months = 12;      //fail，不能这样声明
+    static const int Months = 12;   //success
+    enum {Months = 12};         //success
+}
+```
+使用关键字static定义常量，该常量与其他变量存储在一起，而不是存储在对象中，因此所有对象共享同一个常量。
+
+### 作用域内枚举（C++11）
+```C++
+enum class egg_old {Small, Medium, Large, Jumbo};
+enum class t_shirt {Small, Medium, Large, Jumbo};
+egg choice = egg::Large;
+t_shirt floyd = t_shirt::Large;
+// underlying type for pizza is short
+enum class : short pizza {Small, Medium, Large}
+```
+> 枚举量的作用域为类后，不同枚举定义的枚举量就不会发生命名冲突了。C++11提高了作用域内枚举的类型安全，**在有些情况下，常规枚举将自动转换为整型，如将其赋值给int变量或者用于表达式时，但是作用域内枚举不能隐式得转化为整型，必要时可以进行显式转化。**
+> 
+> 枚举用某种底层整数类型表示，在98中如何选择取决于实现，因此包含枚举的结构的长度可能随系统而异。11消除了这种依赖性，默认情况下，11作用域内枚举的底层类型为int，也可以根据以上代码指定。
+
+### 运算符重载
+
+operatorop(argument-list)
+
+```C++
+class Time
+{
+private:
+//...
+public:
+Time operator+(const Time& t) const;
+// t1 + t2 被转换为 t1.operator+(t2)
+Time operator*(double x) const;     //成员函数
+//...
+}
+Time operator*(double m, const Time& t);  //非成员函数，不能访问不能访问类的私有成员，因此需要友元函数
+```
+**运算符重载限制：**
+- 重载后的运算符必须至少有一个操作数是用户自定义的类型，这防止了用户为标准类型重载运算符。
+- 不能违反运算符原来的句法规则，不能改变运算符的优先级。
+- 不能创造新运算符
+- 不能重载下面的运算符：
+  - sizeof
+  - .
+  - \*
+  - ::
+  - ?:
+  - typeid
+  - const_cast
+  - dynamic_cast
+  - reinterpret_cast
+  - static_cast
+- 下面的运算符只能通过成员函数进行重载
+  - =
+  - ()
+  - []
+  - ->
+
+### 友元
+- 友元函数
+- 友元类
+- 友元成员函数
+
+通过让函数称为类的友元，可以赋予该函数与类的成员函数相同的访问权限。
+
+> 创建友元函数的第一步是将其原型放在类声明中，并在原型前面加上关键字friend：
+> friend Time operator*(double m, const Time& t);
+> 第二步是编写函数定义，因为其不是成员函数，所以不需要使用类限定符，并且不要在定义中使用关键字friend
+> 友元函数常用来重载<<运算符：
+> void operator<<(ostream& os, const Time& t);
+
