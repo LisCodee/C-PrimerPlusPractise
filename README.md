@@ -413,5 +413,5 @@ Time operator*(double m, const Time& t);  //非成员函数，不能访问不能
 > friend Time operator*(double m, const Time& t);
 > 第二步是编写函数定义，因为其不是成员函数，所以不需要使用类限定符，并且不要在定义中使用关键字friend
 > 友元函数常用来重载<<运算符：
-> void operator<<(ostream& os, const Time& t);
+> ostream & operator<<(ostream& os, const Time& t);
 
