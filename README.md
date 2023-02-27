@@ -299,3 +299,184 @@ namespace mff = my_favourite_fruits;
 - 不要再头文件中使用using编译指令，如非要使用，应放在所有#include之后
 - 首先使用using声明而不是using编译指令
 
+# 第10章 面向对象编程
+
+## 类和对象
+OOP最重要的特性：
+- 抽象
+- 封装和数据隐藏
+- 多态
+- 继承
+- 可重用性
+
+
+> 结构的默认访问类型是public，而类成员的默认访问类型是private。位于类声明中的函数都将自动成为内联函数。
+>所创建的每个新对象都有自己的存储空间，用于存储其内部变量和类成员，但是同一个类的所有对象共享同一组类方法，即每种方法只有一个副本。
+
+使用构造函数：
+```C++
+Stock::Stock(const string& company, long shares, double share_val);
+// 1.
+Stock food = Stock("aaa", 111, 1.2);
+//2.
+Stock garment("bbb", 120, 1.23);
+//3.
+Stock* pstock = new Stock("ccc", 112, 2.1);
+//4.C++11，列表初始化
+Stock s {"ddd", 10, 2.1};
+Stock s2 = {"eee", 20, 3.1};
+```
+
+无法使用对象来调用构造函数，因为对象还没有构造出来。如果没有定义任何构造函数，编译器会提供默认构造函数，如果程序员定义了非默认构造函数，则编译器不会再提供默认构造函数。**在设计类时，通常应该提供对所有类成员作隐式初始化的默认构造函数。**
+
+
+### const成员函数
+
+为了保证函数不会修改调用对象，C++的规定将const关键字放在函数的括号后面：
+```C++
+void Stock::show() const;
+const Stock land = {"aaa", 12, 2};
+land.show();
+```
+***只要类方法不修改调用对象，就应该将其声明为const。***
+
+### 作用域为类的常量
+```C++
+class Bakery
+{
+    private:
+    const int Months = 12;      //fail，不能这样声明
+    static const int Months = 12;   //success
+    enum {Months = 12};         //success
+}
+```
+使用关键字static定义常量，该常量与其他变量存储在一起，而不是存储在对象中，因此所有对象共享同一个常量。
+
+### 作用域内枚举（C++11）
+```C++
+enum class egg_old {Small, Medium, Large, Jumbo};
+enum class t_shirt {Small, Medium, Large, Jumbo};
+egg choice = egg::Large;
+t_shirt floyd = t_shirt::Large;
+// underlying type for pizza is short
+enum class : short pizza {Small, Medium, Large}
+```
+> 枚举量的作用域为类后，不同枚举定义的枚举量就不会发生命名冲突了。C++11提高了作用域内枚举的类型安全，**在有些情况下，常规枚举将自动转换为整型，如将其赋值给int变量或者用于表达式时，但是作用域内枚举不能隐式得转化为整型，必要时可以进行显式转化。**
+> 
+> 枚举用某种底层整数类型表示，在98中如何选择取决于实现，因此包含枚举的结构的长度可能随系统而异。11消除了这种依赖性，默认情况下，11作用域内枚举的底层类型为int，也可以根据以上代码指定。
+
+### 运算符重载
+
+operatorop(argument-list)
+
+```C++
+class Time
+{
+private:
+//...
+public:
+Time operator+(const Time& t) const;
+// t1 + t2 被转换为 t1.operator+(t2)
+Time operator*(double x) const;     //成员函数
+//...
+}
+Time operator*(double m, const Time& t);  //非成员函数，不能访问不能访问类的私有成员，因此需要友元函数
+```
+**运算符重载限制：**
+- 重载后的运算符必须至少有一个操作数是用户自定义的类型，这防止了用户为标准类型重载运算符。
+- 不能违反运算符原来的句法规则，不能改变运算符的优先级。
+- 不能创造新运算符
+- 不能重载下面的运算符：
+  - sizeof
+  - .
+  - \*
+  - ::
+  - ?:
+  - typeid
+  - const_cast
+  - dynamic_cast
+  - reinterpret_cast
+  - static_cast
+- 下面的运算符只能通过成员函数进行重载
+  - =
+  - ()
+  - []
+  - ->
+
+### 友元
+- 友元函数
+- 友元类
+- 友元成员函数
+
+通过让函数称为类的友元，可以赋予该函数与类的成员函数相同的访问权限。
+
+> 创建友元函数的第一步是将其原型放在类声明中，并在原型前面加上关键字friend：
+> friend Time operator*(double m, const Time& t);
+> 第二步是编写函数定义，因为其不是成员函数，所以不需要使用类限定符，并且不要在定义中使用关键字friend
+> 友元函数常用来重载<<运算符：
+> ostream & operator<<(ostream& os, const Time& t);
+
+## 类的自动类型转换和强制类型转换
+
+只接受一个参数的构造函数才能作为转换函数,除非其他参数有默认值，这会导致意外的类型转换，因此**可以使用explict关键字来禁止隐式转换。** 关闭后仍然允许强制类型转换。
+
+```C++
+class Stonew
+{
+
+public:
+    Stonew(double lbs);     
+    //...
+}
+Stonew myCat;
+myCat = 19.6;   //use Stonew(19.6) to convert double to Stonewt
+```
+
+隐式转换发生的情况：
+- 将Stonewt对象初始化为double值时；
+- 将double值赋值给Stonewt对象时；
+- 将double值传递给接受Stonewt参数的函数时；
+- 返回值被声明为Stonewt的函数试图返回double时。
+
+初始化对象：
+```C++
+Stonewt a = 275;
+Stonewt a(275);
+Stonewt a = Stonewt(275);
+//以上三种方式等价,第一种只适用于构造函数只接受一个参数，后两种不限制
+```
+
+### 转换函数
+
+要进行相反的转换必须使用转换函数，C++11后explict也可以作用于转换函数。
+
+- 转换函数必须是类方法
+- 转换函数不能指定返回类型，但需要有返回值
+- 转换函数不能有参数
+
+
+```C++
+//operator typeName()
+operator int() const
+{
+    return 1;
+}
+```
+
+## 动态内存和类
+
+静态数据成员在类声明中声明，在包含类方法的文件中初始化。初始化时使用作用域解析运算符来指出静态成员所属的类，但如果静态成员是const整形或者枚举，则可以在类声明中初始化。
+
+### 特殊成员函数
+
+C++自动提供一下成员函数（如果本身未定义）：
+
+- 默认构造函数，如果没有定义构造函数
+- 默认析构函数
+- 复制构造函数：用于将一个对象复制到新创建的对象中，形式为ClassName (const ClassName&)
+- 赋值运算符
+- 地址运算符
+
+#### 何时调用复制构造函数
+
+每当程序生成了对象副本时，编译器都将使用复制构造函数，例如当函数按值传递对象或返回对象时。**按值传递将创建原始变量的一个副本。** 另外，编译器生成临时对象时，也将调用复制构造函数。
