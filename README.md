@@ -759,3 +759,61 @@ public:
     using std::valarray<double>::max;
     //上述声明使std::valarray<double>::min()和max()可用，就像是Student的公有方法一样
 }
+```
+
+## 11.9 多重继承
+
+### 11.9.1 几个对象
+
+#### 虚基类
+
+虚基类使得从多个类（基类相同）派生出的对象只继承一个基类对象。
+
+```C++
+class Singer:virtual public Worker{};
+class Waiter:public virtual Worker{};
+class SingerWaiter:public Singer, public Waiter{};
+```
+
+对于以上代码，SingerWaiter对象将只包含Worker对象的一个副本。从本质上说，继承的Singer和Waiter共享一个Worker对象，而不是引入个字的Worker对象副本。**现在的SingerWaiter只包含一个Worker子对象，可以使用多态。**
+
+- C++在基类是虚的时，禁止信息通过中间类自动传递给基类
+
+```C++
+SingerWaiter(const Worker& wk, int p = 0, int v = 0): Worker(wk), Singer(wk, p), Waiter(wk, p){};
+```
+
+因此编译器会调用虚基类的默认构造函数，如果不想使用默认构造函数，则需要显示调用虚基类的构造函数。这种做法对虚基类合法，但是对于非虚基类则是非法的。
+
+### 11.9.2 哪个方法
+
+> 多重继承可能导致函数调用的二义性，例如子类可能从两个父类中都继承了一个show方法。在这种情况下，可以使用作用域解析运算符来指明具体调用的方法；更好的方法则是在子类中重新定义show方法，并指出要使用哪个show。
+
+```C++
+void SingerWaiter::show()
+{
+    Singer::show();
+}
+```
+
+### 11.9.3 总结
+
+#### 混合使用虚基类和非虚基类
+
+> 如果基类是虚基类，派生类将包含基类的一个子对象；如果基类不是虚基类，派生类将包含多个字对象。当类通过多条虚途径和非虚途径继承某个特定的基类时，该类将包含一个表示所有的虚途径的基类子对象和分别表示各条非虚途径的多个基类字对象。
+
+## 11.10 模版类
+
+模版类一般以下面代码开头：
+
+```C++
+template <class Type>
+template <typename Type>
+
+//一个模版类函数的例子：
+template <typename T>
+bool Stack<T>::push(const T& item){};
+```
+
+> 不能将模版成员函数放在独立文件中，由于模版不是函数，他们不能单独编译。模版必须与特定的模版实例化请求一起使用。为此，最简单的方法是**将所有信息放在一个头文件中，并在要使用这些模版的文件中包含该头文件。**
+
