@@ -817,3 +817,34 @@ bool Stack<T>::push(const T& item){};
 
 > 不能将模版成员函数放在独立文件中，由于模版不是函数，他们不能单独编译。模版必须与特定的模版实例化请求一起使用。为此，最简单的方法是**将所有信息放在一个头文件中，并在要使用这些模版的文件中包含该头文件。**
 
+### 模版的具体化
+
+类模版与函数模版相似，可以有隐式实例化、显示实例化和显示具体化。
+
+- 隐式实例化
+编译器在需要对象之前，不会生成类的隐式实例化。
+
+```C++
+ArrayTp<double, 30> *pt;    //a pointer, no object needed yet
+pt = new ArrayTP<double, 30>;   //now an object is needed
+```
+
+以上第二条语句会导致编译器生成类定义，并根据该定义创建一个对象。
+- 显示实例化
+
+通过使用关键字template并指出所需类型来声明类，编译器将生成类声明的显示实例化(explicit instantiation)。声明必须位于模版定义所在的命名空间中。
+
+```C++
+template class ArrayTp<string, 100>;
+```
+
+- 显示具体化
+
+显示具体化(explicit specializaion)是特定类型（用于替换模版中的范型）的定义。当具体化模版和通用模版与实例化请求匹配时，编译器将使用具体化版本。
+
+```C++
+template<> class Classname<specialized-type-name>{...};
+class Classname<spceialized-type-name>{...};
+```
+
+- 部分具体化
