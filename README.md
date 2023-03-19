@@ -850,3 +850,72 @@ class Classname<spceialized-type-name>{...};
 
 - 部分具体化
 
+# 第十六章 标准模板库
+
+## 智能指针
+
+- auto_ptr: C++98, 在后续版本被弃用
+- unique_ptr:   C++11
+- shared_ptr: C++11
+- weak_ptr: C++11
+
+```C++
+auto_ptr<string> ps(new string("aaaaa"));
+auto_ptr<string> ps2;
+ps2 = ps;
+```
+
+对于以上问题，如果是常规指针，则两个指针同时指向一个对象，这可能会删除同一个对象两次。智能指针使用下面的方法来解决这个问题：  
+建立对象所有权(ownership)概念，对于特定的对象，只能有一个智能指针可以拥有它，这样只有拥有对象的智能指针的构造函数会删除该对象。然后，让复制操作转让所有权。这就是用于auto_ptr和unique_ptr的策略，但是unique_ptr的策略更严格。  
+使用引用计数，跟踪引用特定对象的智能指针数。仅当最后一个指针过期时，才调用delete。这是shared_ptr采用的策略。
+
+```C++
+int main()
+{
+    using namespace std;
+    auto_ptr<string> film[5] = {
+        auto_ptr<string> (new string("Fow balks")),
+        auto_ptr<string> (new string("Fow balks1")),
+        auto_ptr<string> (new string("Fow balks2")),
+        auto_ptr<string> (new string("Fow balks3")),
+        auto_ptr<string> (new string("Fow balks4"))
+    };
+    auto_ptr<string> pwin;
+    pwin = film[2];         //film[2] loses the ownership
+    cout << "---------------------" << endl;
+    for(int i = 0; i < 5; ++i)
+        cout << *film[i] << endl;       // segmentation fault
+    cout << "*pwin" << *pwin << endl;
+    cin.get();
+    return 0;
+}
+```
+
+对于auto_prt，在将对象的所有权转让后，便不能用它来访问该对象，因此film[2]将会是一个空指针。以上代码使用shared_ptr后可以正常运行，使用unique_ptr会在编译阶段报错。
+
+```C++
+unique_ptr<string> ups = unique_ptr<string> (new string("bbb"));
+```
+
+> 如果源unique_ptr是个临时右值，编译器允许以上做法，如果源unique_ptr将存在一段时间，编译器将禁止。想要安全的重用这种指针，可以使用std::move()，这个函数可以将一个unique_ptr赋给另一个。**在unique_ptr是右值时，可以将其赋给shared_ptr。
+
+auto_ptr只有new/delete版本，而unique_ptr有new/delete和new[\]\/delete[]版本。
+
+## 16.3 STL
+
+STL提供了一组表示**容器、迭代器、函数对象和算法**的模板。
+
+### 迭代器类型
+
+STL定义了5种迭代器，分别是输入迭代器、输出迭代器、正向迭代器、双向迭代器和随机访问迭代器。
+
+#### 输入输出迭代器
+
+基于输入迭代器的任何算法都应当是单通行(single-pass)的，不依赖于前一次遍历时的迭代器值，也不依赖于本次遍历中前面的迭代器值。输入迭代器时单向迭代器，可以递增但不能倒退。
+
+对于单通行只读算法，可以使用输入迭代器；而对于单通行只写算法，则可以使用输出迭代器。
+
+### 容器
+
+以前的容器有：deque, list, queue, priority_queue, stack, vector, map, multimap, set, multiset和bitset。C++11新增了forward_list, unordered_map, unordered_multimap, unordered_set和unordered_multiset，并且不把bitset是为容器。
+
