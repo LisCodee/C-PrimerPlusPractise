@@ -919,3 +919,53 @@ STL定义了5种迭代器，分别是输入迭代器、输出迭代器、正向�
 
 以前的容器有：deque, list, queue, priority_queue, stack, vector, map, multimap, set, multiset和bitset。C++11新增了forward_list, unordered_map, unordered_multimap, unordered_set和unordered_multiset，并且不把bitset是为容器。
 
+# 第18章 C++新标准
+
+- C++11新增类型long long和unsigned long long以支持64位整型。新增char16_t和char32_t。
+
+- C++11扩大了用大括号括起的列表适用范围
+- 提供auto声明以进行自动类型推导
+- 提供decltype将变量类型声明为表达式指定的类型，这在定义模板时非常有用
+- 返回类型后置，以便可以使用decltype来指定模板函数的返回类型
+- 模板别名using=，可以用模板部分具体化，typedef不行
+- 引入nullptr
+- 引入新智能指针unique_ptr, shared_ptr, weak_ptr，摒弃auto_ptr
+- 修改异常规范throw()-->noexpect
+- 引入作用域内枚举
+- 显示转换运算符explicit
+- 类内成员初始化
+- 基于范围的for循环
+- 新增STL容器
+- 新增rbegin(),rend()
+- 右值引用
+- override和final管理虚方法
+- lambda函数
+- thread_local
+
+## 18.1 右值引用和移动语义
+
+左值是一个表示数据的表达式(如变量名或解除引用的指针)，程序可以获取其地址。右值引用可关联到右值，即可出现在赋值表达式右边，但不能对其应用地址运算符的值。C++11引入右值引用，使用&&表示。右值包括**字面常量、诸如x+y等表达式以及返回值的函数。**
+
+移动语义实际上避免了移动原始数据，而只是修改记录。移动构造函数可能修改其实参。
+
+## 18.2 Lambda函数
+
+```C++
+[] (int x){return x % 3 == 0;}
+[] (double x) -> double {int y = x; return x - y;}
+```
+
+仅当lambda表达式完全由一条返回语句组成时，自动类型推断才能管用，否则需要使用新增的返回类型后置语法。
+
+lambda可访问作用域内任何动态变量，要捕获要使用的变量，可将其名称放在[]中。=让你能够按值访问所有变量，&能够按引用访问所有变量。
+
+## 18.3 可变参数模板
+
+```C++
+template<typename T, typename... Args>
+void show(T value, Args... args)
+{
+    std::cout << value << std::endl;
+    show(args...);
+}
+```
