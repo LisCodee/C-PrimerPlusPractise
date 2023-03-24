@@ -848,3 +848,231 @@ class Classname<spceialized-type-name>{...};
 ```
 
 - 部分具体化
+
+C++允许部分具体化(partial specialization)，即部分限制模版的通用性。
+
+```C++
+template <class T1, class T2> class Pair{...};
+//specialization with T2 set to int
+template <class T1> class Pair<T1, int>{...};
+```
+
+> 如果有多个模版可供选择，编译器将使用具体化程度高的模版。
+
+```C++
+template <typename T>
+
+class beta
+{
+private:
+    template <typename V>
+    class hold
+    {
+    private:
+        V val;
+
+    public:
+        hold(V v = 0): val(v){}
+        void show() const {cout << val << endl;}
+        V Value() const {return val;}
+    };
+    hold<T> q;  //template object
+    hold<int> n;    //template object
+public:
+    beta(T t, int i):q(t), n(i){}
+    template<typename U>    //template method
+    U blab(U u, T t) {return (n.Value() + q.Value()) * u / t;}
+    void Show() const {q.show();n.show();}
+};
+```
+
+**将模版用作参数**
+
+```C++
+template<template <typename T>class Thing>
+```
+
+上面的template \<typename T>class是类型，Thing是参数。
+
+### 模版类和友元
+
+模版类的友元分为：
+
+- 非模版友元,所有模版实例化后的友元
+- 约束(bound)模版友元，即友元的类型取决于类被实例化时的类型
+- 非约束(unbound)模版友元，即友元的所有具体化都是类的每一个具体化的友元。
+
+```C++
+template <typename T>
+
+class HasFriend
+{
+private:
+    T item;
+    static int ct;
+public:
+    HasFirend(const T& i):item(i){}
+    ~HasFirend(){ct--;}
+    friend void counts();
+    friend void reports(HasFriend<T>& );//template parameter
+};
+
+template<typename T>
+int HasFriend<T>::ct = 0;
+//non-template friend to all HasFriend<T> classes
+void counts()
+{
+    cout << HasFriend<int>::ct << endl;
+}
+//...
+```
+
+bound template friend function:
+
+```C++
+//1. prototypes
+template<typename T> void counts();
+template<typename T> void report(T&);
+
+template<typename TT>
+class HasFriendT
+{
+private:
+    TT item;
+    static int ct;
+
+public:
+    HasFriendT(const TT& i):item(i){ct++;}
+    ~HasFriendT(){--ct;}
+    friend void counts<TT>();
+    friend void reports<>(HasFriend<TT> &);
+};
+
+template<typename T>
+void counts()
+{
+    cout << "template size:" << sizeof(HasFriendT<T>) << ";";
+    cout << "template counts():" << HasFriendT<T>::ct << endl;
+}
+
+template<typename T>
+void report(T& hf)
+{
+    cout << hf.item << endl;
+}
+```
+
+通过在类内部声明模版，可以创建非约束友元函数，即每个函数具体化都是每个类具体化的友元。
+
+```C++
+template <typename T>
+class ManyFriend
+{
+private:
+    T item;
+public:
+    template<typename C, typename D> friend void show2(C & , D &);
+}
+```
+
+### 模版别名
+
+```C++
+template<typename T>
+    using arrt = std::array<T, 12>;//template to create multiple aliases
+    arrt<double> a; //a is type std::array<double, 12>
+```
+
+同时C++11允许将using=用于非模版，用于非模版时，这种语法与常规typedef等价。
+
+# 第15章 友元/异常和其他
+
+## 15.1 友元
+```C++
+class TV
+{
+public:
+    friend class Remote;    //友元类
+    friend void Remote::setchannel(Tv& t, int c);   //友元成员函数
+    //...
+};
+```
+
+## 15.2 异常
+
+```C++
+double func(int a, int b)
+{
+    if(b == 0)
+        throw "bad func() arguments:b = 0 is now allowed";
+    return a/b;
+}
+
+int main()
+{
+    try
+    {
+        int a = 1, b =2;
+    }
+    catch (const char* s)
+    {
+        cout << s << endl;
+    }
+    catch (...)     //catch whatever is left
+    {
+
+    }
+}
+```
+
+### 异常规范
+
+```C++
+double harm(double a) throw(bad_thing);
+double marm() noexcept;     //C++11，表示这个函数不会引发异常
+```
+
+> 程序进行栈解退以回到能够捕获异常的地方时，将释放栈中的自动存储型变量，如果变量是类对象，自动为该对象调用析构函数。
+> 引发异常时，编译器总是创建一个临时拷贝，即使异常规范和catch块中指定的是引用。这是因为在引发异常的函数执行后，会自动为其中的对象变量调用析构函数。但是使用引用的一个好处是：**基类引用可以指向派生类对象。**
+
+### exception类
+
+C++库定义了很多基于exception的异常类型
+
+- stdexception
+  - logic_error
+    - domain_error
+    - invalid_argument
+    - length_error
+    - out_of_bounds
+  - runtime_error
+    - range_error
+    - overflow_error
+    - underflow_error
+
+对于使用new导致的内存分配问题，C++的最新处理方式是让new引发bad_alloc异常。为了处理new的变化，有些编译器提供了一个开关，可以在失败时返回空指针的new：
+
+```C++
+int* pi = new (std::nothrow) int;
+```
+
+对于意外异常和未捕获异常，程序的默认处理是终止。未捕获异常不会导致程序立刻终止，而是首先调用terminate()，默认情况下，terminate()调用abort()函数，可以通过修改terminate()调用的函数来改变行为。
+如果发生意外异常，程序将调用unexpected()函数，与上面情况类似。
+
+## 15.4 RTTI(运行时类型识别)
+
+C++有三个支持RTTI的元素：
+
+- 如果可能的话，dynamic_cast运算符将使用一个指向基类的指针来生成一个指向派生类的指针，否则返回0
+- typeid运算符返回一个指出对象的类型的值
+- type_info结构存储了有关特定类型的信息
+
+**只能将RTTI用于包含虚函数的类层次结构，原因在于只有对于这种类层次结构，才应该将派生对象的地址赋给基类指针。**
+
+## 15.5 类型转换运算符
+
+- dynamic_cast
+- const_cast
+- static_cast
+- reinterpret_cast
+
