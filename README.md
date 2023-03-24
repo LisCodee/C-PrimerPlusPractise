@@ -1077,5 +1077,123 @@ C++有三个支持RTTI的元素：
 - static_cast
 - reinterpret_cast
 
+# 第十六章 标准模板库
 
+## 智能指针
+
+- auto_ptr: C++98, 在后续版本被弃用
+- unique_ptr:   C++11
+- shared_ptr: C++11
+- weak_ptr: C++11
+
+```C++
+auto_ptr<string> ps(new string("aaaaa"));
+auto_ptr<string> ps2;
+ps2 = ps;
+```
+
+对于以上问题，如果是常规指针，则两个指针同时指向一个对象，这可能会删除同一个对象两次。智能指针使用下面的方法来解决这个问题：  
+建立对象所有权(ownership)概念，对于特定的对象，只能有一个智能指针可以拥有它，这样只有拥有对象的智能指针的构造函数会删除该对象。然后，让复制操作转让所有权。这就是用于auto_ptr和unique_ptr的策略，但是unique_ptr的策略更严格。  
+使用引用计数，跟踪引用特定对象的智能指针数。仅当最后一个指针过期时，才调用delete。这是shared_ptr采用的策略。
+
+```C++
+int main()
+{
+    using namespace std;
+    auto_ptr<string> film[5] = {
+        auto_ptr<string> (new string("Fow balks")),
+        auto_ptr<string> (new string("Fow balks1")),
+        auto_ptr<string> (new string("Fow balks2")),
+        auto_ptr<string> (new string("Fow balks3")),
+        auto_ptr<string> (new string("Fow balks4"))
+    };
+    auto_ptr<string> pwin;
+    pwin = film[2];         //film[2] loses the ownership
+    cout << "---------------------" << endl;
+    for(int i = 0; i < 5; ++i)
+        cout << *film[i] << endl;       // segmentation fault
+    cout << "*pwin" << *pwin << endl;
+    cin.get();
+    return 0;
+}
+```
+
+对于auto_prt，在将对象的所有权转让后，便不能用它来访问该对象，因此film[2]将会是一个空指针。以上代码使用shared_ptr后可以正常运行，使用unique_ptr会在编译阶段报错。
+
+```C++
+unique_ptr<string> ups = unique_ptr<string> (new string("bbb"));
+```
+
+> 如果源unique_ptr是个临时右值，编译器允许以上做法，如果源unique_ptr将存在一段时间，编译器将禁止。想要安全的重用这种指针，可以使用std::move()，这个函数可以将一个unique_ptr赋给另一个。**在unique_ptr是右值时，可以将其赋给shared_ptr。
+
+auto_ptr只有new/delete版本，而unique_ptr有new/delete和new[\]\/delete[]版本。
+
+## 16.3 STL
+
+STL提供了一组表示**容器、迭代器、函数对象和算法**的模板。
+
+### 迭代器类型
+
+STL定义了5种迭代器，分别是输入迭代器、输出迭代器、正向迭代器、双向迭代器和随机访问迭代器。
+
+#### 输入输出迭代器
+
+基于输入迭代器的任何算法都应当是单通行(single-pass)的，不依赖于前一次遍历时的迭代器值，也不依赖于本次遍历中前面的迭代器值。输入迭代器时单向迭代器，可以递增但不能倒退。
+
+对于单通行只读算法，可以使用输入迭代器；而对于单通行只写算法，则可以使用输出迭代器。
+
+### 容器
+
+以前的容器有：deque, list, queue, priority_queue, stack, vector, map, multimap, set, multiset和bitset。C++11新增了forward_list, unordered_map, unordered_multimap, unordered_set和unordered_multiset，并且不把bitset是为容器。
+
+# 第18章 C++新标准
+
+- C++11新增类型long long和unsigned long long以支持64位整型。新增char16_t和char32_t。
+
+- C++11扩大了用大括号括起的列表适用范围
+- 提供auto声明以进行自动类型推导
+- 提供decltype将变量类型声明为表达式指定的类型，这在定义模板时非常有用
+- 返回类型后置，以便可以使用decltype来指定模板函数的返回类型
+- 模板别名using=，可以用模板部分具体化，typedef不行
+- 引入nullptr
+- 引入新智能指针unique_ptr, shared_ptr, weak_ptr，摒弃auto_ptr
+- 修改异常规范throw()-->noexpect
+- 引入作用域内枚举
+- 显示转换运算符explicit
+- 类内成员初始化
+- 基于范围的for循环
+- 新增STL容器
+- 新增rbegin(),rend()
+- 右值引用
+- override和final管理虚方法
+- lambda函数
+- thread_local
+
+## 18.1 右值引用和移动语义
+
+左值是一个表示数据的表达式(如变量名或解除引用的指针)，程序可以获取其地址。右值引用可关联到右值，即可出现在赋值表达式右边，但不能对其应用地址运算符的值。C++11引入右值引用，使用&&表示。右值包括**字面常量、诸如x+y等表达式以及返回值的函数。**
+
+移动语义实际上避免了移动原始数据，而只是修改记录。移动构造函数可能修改其实参。
+
+## 18.2 Lambda函数
+
+```C++
+[] (int x){return x % 3 == 0;}
+[] (double x) -> double {int y = x; return x - y;}
+```
+
+仅当lambda表达式完全由一条返回语句组成时，自动类型推断才能管用，否则需要使用新增的返回类型后置语法。
+
+lambda可访问作用域内任何动态变量，要捕获要使用的变量，可将其名称放在[]中。=让你能够按值访问所有变量，&能够按引用访问所有变量。
+
+## 18.3 可变参数模板
+
+```C++
+template<typename T, typename... Args>
+void show(T value, Args... args)
+{
+    std::cout << value << std::endl;
+    show(args...);
+}
+```
 
